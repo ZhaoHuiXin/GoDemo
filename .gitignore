@@ -1,0 +1,71 @@
+dist
+.tmp
+.sass-cache
+bower_components
+test/bower_components
+logs/
+logs/serve.log
+upload/
+__pycache__/
+*.pyc
+.DS_Store
+*.cnf
+static/af/
+
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.apk
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+*.iml
+coverage.html
+.idea
+node_modules/
+.scrapy/
+.session
+*.pyc
+*.wsgic
+*.swp
+*.swo
+*~
+cscope.*
+Temp/
+obj/
+
+package-lock.json
+static/screen/
+*.pid
+assets.json
+!migrations/cyx/*.sql
