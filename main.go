@@ -9,7 +9,7 @@ import (
 	"database/sql"
 	_ "database/sql"
 	"net/http"
-	. "mydemo/handler"
+	. "GoDemo/handler"
 	"log"
 )
 
