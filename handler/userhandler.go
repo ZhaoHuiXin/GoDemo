@@ -4,16 +4,19 @@ import (
 	"net/http"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-
 	"log"
 	"html/template"
 	"fmt"
 	"GoDemo/models"
 	"strconv"
+	"net/url"
+	"github.com/garyburd/redigo/redis"
+	"encoding/json"
 )
 var DB *sql.DB
 var User models.Users
 var UserInfo models.UserInfo
+var Info models.Info
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	fmt.Println(r.Method)
@@ -42,18 +45,33 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			for rows.Next() {
 				err = rows.Scan(&User.Id, &User.Name, &User.Password )
 				if err != nil {
-					fmt.Println(111)
 					fmt.Println(err.Error())
 					continue
 				}
 				fmt.Println(222, User.Password)
 				if User.Password == password {
-					t, _ := template.ParseFiles("static/html/loginsuccess.html")
-					t.Execute(w, nil)
+					t, _ := template.
+						ParseFiles("static/html/loginsuccess.html")
+					query_sql := `select infoid from user_info where userid=? `
+					if stmt, err = DB.Prepare(query_sql);err!=nil{
+						fmt.Println("query error!",err)
+					}
+					rows, _ = stmt.Query(User.Id)
+					defer rows.Close()
+					for rows.Next(){
+						err = rows.Scan(&UserInfo.InfoId)
+						if err != nil{
+							fmt.Println(err.Error())
+							continue
+						}
+
+					}
+					t.Execute(w,UserInfo.InfoId)
 
 				}else{
 					fmt.Println(444)
-					t, _ := template.ParseFiles("static/html/loginerr.html")
+					t, _ := template.
+						ParseFiles("static/html/loginerr.html")
 					log.Println(t.Execute(w, nil))
 					return
 					}
@@ -140,5 +158,86 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		defer stmt.Close()
 		res, _ := stmt.Exec(user_id,info_id)
 		fmt.Println(res.RowsAffected())
+	}
+}
+func InfoHandler(w http.ResponseWriter, r *http.Request){
+	c,err := redis.Dial("tcp", "localhost:6379")
+	if err != nil{
+		log.Fatal("connect to redis failed!",err)
+	}
+	defer c.Close()
+	if r.Method == "GET"{
+		queryForm, err := url.ParseQuery(r.URL.RawQuery)
+		if err == nil && len(queryForm["infoid"]) > 0 {
+			//t, _ :=template.ParseFiles("static/html/userinfo.html")
+			//t.Execute(w, queryForm["infoid"][0])
+			infoid := queryForm["infoid"][0]
+			fmt.Println("infoid:",infoid)
+			fmt.Printf("%T",infoid)
+
+			key := "userinfo" + infoid
+			is_key_exists, err := redis.Bool(c.Do("exists",key))
+			if err!=nil {
+				log.Fatal("error", err)
+			}
+			if is_key_exists{
+				valueGet, err:= redis.Bytes(c.Do("get",key))
+				if err!=nil{
+					log.Fatal(err)
+				}
+				err = json.Unmarshal(valueGet,&Info)
+				if err !=nil{
+					log.Fatal(err)
+				}
+				fmt.Println("11111111", Info)
+			}else{
+				query_sql := `select * from info where id=?`
+				stmt, err := DB.Prepare(query_sql)
+				if err != nil{
+					log.Fatal("query error",err)
+				}else{
+					rows,err:= stmt.Query()
+					defer rows.Close()
+					if err != nil{
+						fmt.Println("exec query error",err)
+					}
+					fmt.Println(rows)
+					for rows.Next(){
+						fmt.Println("here!")
+						err = rows.Scan(&Info.Id, &Info.IdCard,&Info.Age,
+							&Info.Sex,&Info.Address,&Info.Phone)
+						if err!= nil{
+							fmt.Println("rows error",err)
+						}
+					}
+					fmt.Println("idcard:",Info.IdCard)
+					fmt.Println("age:",Info.Age)
+					fmt.Println("sex:",Info.Sex)
+					fmt.Println("address:",Info.Address)
+					fmt.Println("phone:",Info.Phone)
+
+					fmt.Println(err)
+					if err !=nil {
+						fmt.Println(err)
+					}
+					key := "userinfo" + strconv.Itoa(Info.Id)
+					value, err := json.Marshal(Info)
+					fmt.Println(string(value))
+					if err!=nil{
+						fmt.Println("json Marshal error:",err)
+					}
+					n, err := c.Do("setnx",key,value)
+					if err != nil{
+						fmt.Println(err)
+					}
+					if n == int64(1){
+						fmt.Println("success!")
+					}
+
+				}
+			}
+			t, _ := template.ParseFiles("static/html/userinfo.html")
+			t.Execute(w, Info)
+		}
 	}
 }
