@@ -25,7 +25,7 @@ func init() {
 	buf := make([]byte, 1024)
 	openConfig.Read(buf)
 	cnfStr := string(buf)
-	fmt.Println(cnfStr)
+	//fmt.Println(cnfStr)
 	splitArr := strings.Split(cnfStr, "\n")
 	usernameItem := splitArr[1]
 	passwordItem := splitArr[2]
@@ -33,9 +33,9 @@ func init() {
 	username := strings.Split(usernameItem,"=")[1]
 	password := strings.Split(passwordItem,"=")[1]
 	host := strings.Split(hostItem,"=")[1]
-	fmt.Println(username)
-	fmt.Println(password)
-	fmt.Println(host)
+	//fmt.Println(username)
+	//fmt.Println(password)
+	//fmt.Println(host)
 	registerInfo := username + ":" + password + "@tcp(" + host +
 		":3306)/test?charset=utf8"
 	DB, err = sql.Open("mysql",registerInfo)
