@@ -12,11 +12,26 @@ import (
 	"net/url"
 	"github.com/garyburd/redigo/redis"
 	"encoding/json"
+	"crypto/md5"
+	"encoding/hex"
 )
 var DB *sql.DB
 var User models.Users
 var UserInfo models.UserInfo
 var Info models.Info
+
+func md5Str(password string) string {
+	h := md5.New()
+	h.Write([]byte(password))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func IndexHandler(w http.ResponseWriter, r *http.Request){
+	if r.Method == "GET"{
+		t, _ := template.ParseFiles("static/html/index.html")
+		t.Execute(w,nil)
+	}
+}
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	fmt.Println(r.Method)
@@ -26,11 +41,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "POST" {
-
 		username := r.FormValue("username")
-		fmt.Println(username)
-		fmt.Printf("%T\n",username)
-		password := r.Form.Get("password")
+		password := md5Str(r.Form.Get("password"))
 
 		query_users_sql := `select * from users where name = ?`
 		if stmt, err := DB.Prepare(query_users_sql); err != nil {
@@ -64,7 +76,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 							fmt.Println(err.Error())
 							continue
 						}
-
 					}
 					t.Execute(w,UserInfo.InfoId)
 
@@ -90,7 +101,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		var user_id int64
 		r.ParseForm()
 		username := r.Form.Get("username")
-		password := r.Form.Get("password")
+		password := md5Str(r.Form.Get("password"))
 		id_card := r.Form.Get("idcard")
 		age, err := strconv.Atoi(r.Form.Get("age"))
 		if err != nil {
@@ -158,6 +169,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		defer stmt.Close()
 		res, _ := stmt.Exec(user_id,info_id)
 		fmt.Println(res.RowsAffected())
+		t, _ := template.ParseFiles("static/html/index.html")
+		t.Execute(w, nil)
 	}
 }
 func InfoHandler(w http.ResponseWriter, r *http.Request){
@@ -169,8 +182,6 @@ func InfoHandler(w http.ResponseWriter, r *http.Request){
 	if r.Method == "GET"{
 		queryForm, err := url.ParseQuery(r.URL.RawQuery)
 		if err == nil && len(queryForm["infoid"]) > 0 {
-			//t, _ :=template.ParseFiles("static/html/userinfo.html")
-			//t.Execute(w, queryForm["infoid"][0])
 			infoid := queryForm["infoid"][0]
 			fmt.Println("infoid:",infoid)
 			fmt.Printf("%T",infoid)
@@ -196,12 +207,12 @@ func InfoHandler(w http.ResponseWriter, r *http.Request){
 				if err != nil{
 					log.Fatal("query error",err)
 				}else{
-					rows,err:= stmt.Query()
+					rows,err:= stmt.Query(infoid)
 					defer rows.Close()
 					if err != nil{
 						fmt.Println("exec query error",err)
 					}
-					fmt.Println(rows)
+					fmt.Println("rows:", rows)
 					for rows.Next(){
 						fmt.Println("here!")
 						err = rows.Scan(&Info.Id, &Info.IdCard,&Info.Age,
