@@ -68,7 +68,6 @@ func Test_Register_1(t *testing.T){
 	if rows != nil{
 		for rows.Next(){
 			err := rows.Scan(&User.Id,&User.Name,&User.Password)
-
 			Check(err)
 		}
 		query_sql := `select * from user_info where userid=?`

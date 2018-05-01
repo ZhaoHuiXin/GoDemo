@@ -48,6 +48,7 @@ func main() {
 	mux.HandleFunc("/mydemo/login", LoginHandler)
 	mux.HandleFunc("/mydemo/register", RegisterHandler)
 	mux.Handle("/mydemo/userinfo", http.HandlerFunc(InfoHandler))
+	mux.Handle("/mydemo/index", http.HandlerFunc(IndexHandler))
 	fmt.Println("over")
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil{

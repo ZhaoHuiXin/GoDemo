@@ -24,6 +24,7 @@ type Info struct {
 //}
 
 type UserInfo struct {
+	Id int `json:"id"`
 	UserId int `json:"user_id"`
 	InfoId int `json:"info_id"`
 }
