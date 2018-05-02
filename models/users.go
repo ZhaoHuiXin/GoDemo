@@ -12,7 +12,7 @@ type Info struct {
 	Age int `json:"age"`
 	Sex int	`json:"sex"`
 	Address string `json:"address"`
-	Phone int `json:"phone"`
+	Phone int64 `json:"phone"`
 }
 
 type UserInfo struct {
