@@ -50,6 +50,14 @@ func Test_md5Str(t *testing.T){
 	}
 }
 
+func Test_IndexHandler(t *testing.T){
+	resp, err := http.Get("http://localhost:8080/mydemo/index")
+	if err != nil{
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+}
+
 func Test_LoginHandler_1(t *testing.T){
 	resp, err := http.Get("http://localhost:8080/mydemo/login")
 	if err != nil{
@@ -73,7 +81,7 @@ func Test_Register_1(t *testing.T){
 		query_sql := `select * from user_info where userid=?`
 		stmt, err :=db.Prepare(query_sql)
 		Check(err)
-		t.Log("USERID:",User.Id)
+		//t.Log("USERID:",User.Id)
 
 		rows, err = stmt.Query(User.Id)
 		Check(err)
@@ -85,23 +93,21 @@ func Test_Register_1(t *testing.T){
 			Check(err)
 			t.Log("InfoId:",UserInfo.InfoId)
 			res, err :=stmt.Exec(UserInfo.InfoId)
-			t.Log("err1",err)
+			t.Log("err1:",err)
 
 			del_sql = `delete from users where id=?`
 			stmt, err = db.Prepare(del_sql)
 			t.Log("UserId:",UserInfo.UserId)
 
 			res, err = stmt.Exec(UserInfo.UserId)
-			t.Log("err2",err)
-
+			t.Log("err2:",err)
 
 			del_sql = `delete from user_info where id=?`
 			stmt, err = db.Prepare(del_sql)
 			t.Log("Id:",UserInfo.Id)
 
 			res,err = stmt.Exec(UserInfo.Id)
-			t.Log("err3",err)
-
+			t.Log("err3:",err)
 
 			affect, err := res.RowsAffected()
 			Check(err)

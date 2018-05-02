@@ -34,7 +34,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request){
 }
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	fmt.Println(r.Method)
+	//fmt.Println(r.Method)
 	if r.Method == "GET" {
 		t, _ := template.ParseFiles("static/html/login.html")
 		log.Println(t.Execute(w, nil))
@@ -52,7 +52,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}else{
 			defer stmt.Close()
 			rows, err := stmt.Query(username)
-			fmt.Println(rows)
+			//fmt.Println(rows)
 			defer rows.Close()
 			for rows.Next() {
 				err = rows.Scan(&User.Id, &User.Name, &User.Password )
@@ -60,7 +60,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 					fmt.Println(err.Error())
 					continue
 				}
-				fmt.Println(222, User.Password)
+				//fmt.Println(222, User.Password)
 				if User.Password == password {
 					t, _ := template.
 						ParseFiles("static/html/loginsuccess.html")
@@ -80,7 +80,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 					t.Execute(w,UserInfo.InfoId)
 
 				}else{
-					fmt.Println(444)
+					//fmt.Println(444)
 					t, _ := template.
 						ParseFiles("static/html/loginerr.html")
 					log.Println(t.Execute(w, nil))
@@ -99,6 +99,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		var info_id int64
 		var user_id int64
+		//var phone int64
 		r.ParseForm()
 		username := r.Form.Get("username")
 		password := md5Str(r.Form.Get("password"))
@@ -118,14 +119,15 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		address := r.Form.Get("address")
-		phone, err := strconv.Atoi(r.Form.Get("phone"))
+		phone, err := strconv.
+			ParseInt(r.Form.Get("phone"),10,64)
 		//fmt.Println(id_card)
 		//fmt.Println(age)
 		//fmt.Println(sex)
 		//fmt.Println(address)
 		//fmt.Println(phone)
 		if err != nil {
-			fmt.Println("phone error!")
+			fmt.Println("phone error!",err)
 		}
 		insert_sql := `insert into info(idcard, age, sex, address, phone)
  						values(?,?,?,?,?)`
@@ -138,13 +140,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			defer stmt.Close()
 			res, err := stmt.Exec(id_card, age, sex, address, phone)
 			if err != nil {
-				fmt.Println(err)
-				fmt.Println("db insert exec error!")
+				fmt.Println("db insert exec error!",err)
 			}
 			affect, _ := res.RowsAffected()
 			fmt.Println(affect)
 			info_id, _ = res.LastInsertId()
-			fmt.Println("infor_id", info_id)
+			fmt.Println("info_id", info_id)
 		}
 		insert_sql = `insert into users(name,password) values(?,?)`
 		stmt, err = DB.Prepare(insert_sql)
@@ -155,11 +156,10 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			defer stmt.Close()
 			res, err := stmt.Exec(username, password)
 			if err != nil {
-				fmt.Println(err)
-				fmt.Println("db user insert exec error!")
+				fmt.Println("db user insert exec error!",err)
 			}
 			user_id, _ = res.LastInsertId()
-			fmt.Println("uid", user_id)
+			//fmt.Println("uid", user_id)
 		}
 		insert_sql = `insert into user_info(userid,infoid) values(?,?)`
 		if stmt, err = DB.Prepare(insert_sql);err != nil{
@@ -183,8 +183,8 @@ func InfoHandler(w http.ResponseWriter, r *http.Request){
 		queryForm, err := url.ParseQuery(r.URL.RawQuery)
 		if err == nil && len(queryForm["infoid"]) > 0 {
 			infoid := queryForm["infoid"][0]
-			fmt.Println("infoid:",infoid)
-			fmt.Printf("%T",infoid)
+			//fmt.Println("infoid:",infoid)
+			//fmt.Printf("%T",infoid)
 
 			key := "userinfo" + infoid
 			is_key_exists, err := redis.Bool(c.Do("exists",key))
@@ -200,7 +200,7 @@ func InfoHandler(w http.ResponseWriter, r *http.Request){
 				if err !=nil{
 					log.Fatal(err)
 				}
-				fmt.Println("11111111", Info)
+				//fmt.Println("11111111", Info)
 			}else{
 				query_sql := `select * from info where id=?`
 				stmt, err := DB.Prepare(query_sql)
@@ -212,20 +212,20 @@ func InfoHandler(w http.ResponseWriter, r *http.Request){
 					if err != nil{
 						fmt.Println("exec query error",err)
 					}
-					fmt.Println("rows:", rows)
+					//fmt.Println("rows:", rows)
 					for rows.Next(){
-						fmt.Println("here!")
+						//fmt.Println("here!")
 						err = rows.Scan(&Info.Id, &Info.IdCard,&Info.Age,
 							&Info.Sex,&Info.Address,&Info.Phone)
 						if err!= nil{
 							fmt.Println("rows error",err)
 						}
 					}
-					fmt.Println("idcard:",Info.IdCard)
-					fmt.Println("age:",Info.Age)
-					fmt.Println("sex:",Info.Sex)
-					fmt.Println("address:",Info.Address)
-					fmt.Println("phone:",Info.Phone)
+					//fmt.Println("idcard:",Info.IdCard)
+					//fmt.Println("age:",Info.Age)
+					//fmt.Println("sex:",Info.Sex)
+					//fmt.Println("address:",Info.Address)
+					//fmt.Println("phone:",Info.Phone)
 
 					fmt.Println(err)
 					if err !=nil {
@@ -244,7 +244,6 @@ func InfoHandler(w http.ResponseWriter, r *http.Request){
 					if n == int64(1){
 						fmt.Println("success!")
 					}
-
 				}
 			}
 			t, _ := template.ParseFiles("static/html/userinfo.html")
