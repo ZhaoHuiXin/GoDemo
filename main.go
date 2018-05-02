@@ -49,7 +49,7 @@ func main() {
 	mux.HandleFunc("/mydemo/register", RegisterHandler)
 	mux.Handle("/mydemo/userinfo", http.HandlerFunc(InfoHandler))
 	mux.Handle("/mydemo/index", http.HandlerFunc(IndexHandler))
-	fmt.Println("over")
+	fmt.Println("project starting...")
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil{
 		log.Fatal(err)
